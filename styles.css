@@ -492,3 +492,12 @@ svg.i.fill { fill: currentColor; }
 .save-button svg.i { width: 16px; height: 16px; }
 .favorite-toggle > span:first-child { display: inline-flex; font-size: 15px; }
 #theme-button { display: inline-flex; align-items: center; padding: 8px 10px; font-size: 15px; }
+
+/* Barre latérale : défilement interne quand l'écran est court */
+.sidebar { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #c5cec8 transparent; }
+.sidebar > * { flex-shrink: 0; }
+.sidebar-footer { margin-top: auto; }
+.sidebar-card { scroll-margin-top: 12px; }
+html { scroll-behavior: smooth; }
+[data-theme="dark"] .sidebar { scrollbar-color: #34423a transparent; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
