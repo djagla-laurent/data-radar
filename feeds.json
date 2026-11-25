@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Presse Bénin · emplois",
+    "url": "https://news.google.com/rss/search?q=recrutement+(informatique+OR+%22data%22+OR+statisticien+OR+%22analyste%22)+B%C3%A9nin&hl=fr&gl=BJ&ceid=BJ:fr",
+    "type": "job", "typeLabel": "Emploi", "topic": "it", "language": "fr", "maxAgeDays": 45,
+    "value": "Annonce de recrutement relayée par la presse béninoise. Vérifiez l’offre sur le site de l’employeur."
+  },
+  {
+    "name": "Presse Bénin · formations",
+    "url": "https://news.google.com/rss/search?q=formation+(informatique+OR+%22science+des+donn%C3%A9es%22+OR+statistique+OR+num%C3%A9rique)+B%C3%A9nin&hl=fr&gl=BJ&ceid=BJ:fr",
+    "type": "event", "typeLabel": "Formation", "topic": "it", "language": "fr", "maxAgeDays": 60,
+    "value": "Formation ou cursus annoncé au Bénin. Consultez la page originale pour les conditions d’inscription."
+  },
+  {
+    "name": "Presse Bénin · marchés numériques",
+    "url": "https://news.google.com/rss/search?q=%22appel+d%27offres%22+(informatique+OR+num%C3%A9rique+OR+logiciel)+B%C3%A9nin&hl=fr&gl=BJ&ceid=BJ:fr",
+    "type": "tender", "typeLabel": "Appel d’offres", "topic": "it", "language": "fr", "maxAgeDays": 60,
+    "value": "Appel d’offres numérique relayé par la presse. Vérifiez le dossier sur le portail officiel des marchés publics."
+  }
+]
