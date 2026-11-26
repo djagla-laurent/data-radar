@@ -53,7 +53,7 @@ export function devpostItem(h, { make, clean, today }) {
     date: dates ? dates.start : today, deadline: status === "ended" ? undefined : dates?.end,
     source: `Devpost${noOrg ? "" : ` · ${org}`}`, url: h.url, title: clean(h.title, 200),
     summary: `${when}${place ? ` · ${place}` : ""}${themes.length ? ` · ${themes.join(", ")}` : ""}.`,
-    value: `${status === "open" ? "Hackathon en cours" : status === "upcoming" ? "Hackathon à venir" : "Hackathon récemment terminé"}${prize && !/^\$?0$/.test(prize) ? `, dotation : ${prize}` : ""}. Vérifiez les règles et les conditions de participation sur la page officielle.`
+    value: `${status === "open" ? "Hackathon en cours" : status === "upcoming" ? "Hackathon à venir" : "Hackathon récemment terminé"}. Vérifiez les règles et les conditions de participation sur la page officielle.`
   });
 }
 
@@ -92,7 +92,7 @@ async function fromKaggle({ make, clean, env, today }) {
       date: String(c.enabledDate || c.dateEnabled || today).slice(0, 10), deadline: String(c.deadline).slice(0, 10),
       source: "Kaggle", url: String(c.url || "").startsWith("http") ? c.url : `https://www.kaggle.com/competitions/${slug}`,
       title: clean(c.title, 200), summary: clean(c.description, 240) || "Compétition de data science sur Kaggle.",
-      value: `Compétition en cours, date limite le ${frDate(String(c.deadline).slice(0, 10))}${reward ? `, récompense : ${reward}` : ""}${c.teamCount ? `, ${c.teamCount} équipes` : ""}.`
+      value: `Compétition en cours, date limite le ${frDate(String(c.deadline).slice(0, 10))}${c.teamCount ? `, ${c.teamCount} équipes` : ""}.`
     });
   });
 }
@@ -117,7 +117,7 @@ const platformItems = ({ make, today }) => PLATFORMS.map(([id, name, url, summar
 export function manualChallenges(list, { make, today }) {
   return (Array.isArray(list) ? list : []).filter((e) => e?.type === "challenge" && e.title && e.url).map((e, index) => make({
     ...base, id: `manual-challenge-${index}-${String(e.date || e.deadline || today).slice(0, 10)}`, topic: e.topic || "data-science", language: e.language || "fr",
-    status: ["open", "upcoming", "ended"].includes(e.status) ? e.status : "open", date: String(e.date || today).slice(0, 10), deadline: e.deadline, prize: e.prize,
+    status: ["open", "upcoming", "ended"].includes(e.status) ? e.status : "open", date: String(e.date || today).slice(0, 10), deadline: e.deadline, prize: e.prize, pays: e.pays, rulesUrl: e.rulesUrl,
     source: e.source || "Ajout manuel", url: e.url, title: e.title,
     summary: e.summary || [e.place, e.deadline && `date limite : ${e.deadline}`].filter(Boolean).join(" · ") || "Challenge ajouté manuellement.",
     value: e.value || "Challenge ajouté par l’équipe du projet. Vérifiez les conditions sur la page officielle."
