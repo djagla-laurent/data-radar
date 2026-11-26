@@ -40,6 +40,10 @@ export function devpostItem(h, { make, clean, today }) {
     if (!dates || dates.end < limit) return null; /* terminé depuis trop longtemps */
   }
   if (!h.title || !h.url) return null;
+  const org = clean(h.organization_name || "", 40);
+  const noOrg = !org || /^(n\/?a|none|-+)$/i.test(org);
+  if (noOrg && /\btest(s|ing)?\b/i.test(h.title)) return null; /* fiche de test */
+  if (status === "upcoming" && dates && dates.start > new Date(Date.now() + 180 * 864e5).toISOString().slice(0, 10)) return null; /* trop lointain */
   const prize = clean(h.prize_amount || "", 30).replace(/([$€£])\s+/g, "$1");
   const themes = (h.themes || []).map((t) => t.name).filter(Boolean).slice(0, 3);
   const place = h.displayed_location?.location;
@@ -47,7 +51,7 @@ export function devpostItem(h, { make, clean, today }) {
   return make({
     ...base, id: `devpost-${h.id}`, topic: "data-science", language: "en", status,
     date: dates ? dates.start : today, deadline: status === "ended" ? undefined : dates?.end,
-    source: `Devpost${h.organization_name ? ` · ${clean(h.organization_name, 40)}` : ""}`, url: h.url, title: clean(h.title, 200),
+    source: `Devpost${noOrg ? "" : ` · ${org}`}`, url: h.url, title: clean(h.title, 200),
     summary: `${when}${place ? ` · ${place}` : ""}${themes.length ? ` · ${themes.join(", ")}` : ""}.`,
     value: `${status === "open" ? "Hackathon en cours" : status === "upcoming" ? "Hackathon à venir" : "Hackathon récemment terminé"}${prize && !/^\$?0$/.test(prize) ? `, dotation : ${prize}` : ""}. Vérifiez les règles et les conditions de participation sur la page officielle.`
   });
