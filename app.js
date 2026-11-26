@@ -1,4 +1,3 @@
-
 let items = [];
 const PAGE_SIZE = 12;
 const CACHE_KEY = "dr:cache-v8"; /* changer ce numéro vide la mémoire des contenus déjà récupérés */
@@ -24,6 +23,7 @@ const typeNames = {
   software: "Logiciels open source",
   dataset: "Données et outils",
   analysis: "Projets d’analyse",
+  challenge: "Challenges et hackathons",
   video: "Vidéos et tutoriels",
   event: "Événements",
   job: "Emplois",
@@ -38,6 +38,7 @@ const filters = {
   type: document.querySelector("#type-filter"),
   topic: document.querySelector("#topic-filter"),
   language: document.querySelector("#language-filter"),
+  status: document.querySelector("#status-filter"),
   sort: document.querySelector("#sort-filter")
 };
 const state = {
@@ -69,6 +70,15 @@ function formatDate(dateString) {
     .format(new Date(`${dateString}T12:00:00`));
 }
 
+/* Challenges et hackathons : statut (en cours, à venir, terminé) et plateformes permanentes */
+const STATUS_LABELS = { open: "En cours", upcoming: "À venir", ended: "Terminé", platform: "Plateforme" };
+const STATUS_RANK = { open: 0, upcoming: 1, platform: 2, ended: 3 };
+function statusText(item) {
+  if (!item.status) return "";
+  const until = item.status === "open" && item.deadline ? ` · jusqu’au ${formatDate(item.deadline)}` : "";
+  return `${STATUS_LABELS[item.status]}${until}`;
+}
+
 /* À date égale, on mélange les sources au lieu de grouper toutes les offres d’un même site. */
 const mixOrder = (id) => [...String(id)].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7);
 
@@ -79,13 +89,23 @@ function getVisibleItems() {
     const matchesProfile = (state.profileTopic === "all" || item.topic === state.profileTopic)
       && (state.profileLanguage === "all" || item.language === state.profileLanguage);
     const searchable = `${item.title} ${item.titleFr || ""} ${item.summary} ${item.summaryFr || ""} ${item.source} ${item.topicLabel}`.toLocaleLowerCase("fr");
-    return matchesProfile
+    /* les plateformes permanentes n’encombrent pas le fil : visibles via le format « Challenges », une recherche ou le statut « Plateforme » */
+    const showPlatform = item.status !== "platform" || filters.type.value === "challenge" || search || filters.status.value === "platform";
+    return matchesProfile && showPlatform
+      && (filters.status.value === "all" || item.status === filters.status.value)
       && (!search || searchable.includes(search))
       && (filters.type.value === "all" || item.type === filters.type.value)
       && (filters.topic.value === "all" || item.topic === filters.topic.value)
       && (filters.language.value === "all" || item.language === filters.language.value)
       && (!state.favoritesOnly || state.favorites.has(item.id));
   }).sort((a, b) => {
+    if (filters.sort.value === "active") {
+      /* en cours d’abord (échéance la plus proche en tête), puis à venir, puis le reste du plus récent au plus ancien */
+      const rank = (STATUS_RANK[a.status] ?? 4) - (STATUS_RANK[b.status] ?? 4);
+      if (rank) return rank;
+      if (a.status === "open" || a.status === "upcoming") return (a.status === "open" ? (a.deadline || "9").localeCompare(b.deadline || "9") : a.date.localeCompare(b.date)) || mixOrder(a.id) - mixOrder(b.id);
+      return b.date.localeCompare(a.date) || mixOrder(a.id) - mixOrder(b.id);
+    }
     const comparison = a.date.localeCompare(b.date);
     if (comparison) return filters.sort.value === "oldest" ? comparison : -comparison;
     return mixOrder(a.id) - mixOrder(b.id);
@@ -100,6 +120,7 @@ function renderCard(item) {
         <div class="card-type-wrap">
           <span class="type-badge type-${escapeHtml(item.type)}">${escapeHtml(item.typeLabel)}</span>
           <span class="topic-tag">${escapeHtml(item.topicLabel)}</span>
+          ${item.status ? `<span class="status-pill status-${escapeHtml(item.status)}">${escapeHtml(statusText(item))}</span>` : ""}
         </div>
         <button class="save-button${saved ? " saved" : ""}" type="button" data-save="${escapeHtml(item.id)}"
           aria-label="${saved ? "Retirer des" : "Ajouter aux"} favoris" aria-pressed="${saved}">${saved ? ICONS.heartFill : ICONS.heart}</button>
@@ -179,7 +200,7 @@ function openDetails(id) {
   state.activeDialogItem = id;
   document.querySelector("#detail-type").className = `type-badge type-${item.type}`;
   document.querySelector("#detail-type").textContent = item.typeLabel;
-  document.querySelector("#detail-language").textContent = `${item.topicLabel} · ${languageNames[item.language]} · ${formatDate(item.date)}`;
+  document.querySelector("#detail-language").textContent = `${item.topicLabel} · ${languageNames[item.language]} · ${formatDate(item.date)}${item.status ? ` · ${statusText(item)}` : ""}`;
   document.querySelector("#detail-title").textContent = titleOf(item);
   document.querySelector("#detail-summary").textContent = summaryOf(item);
   document.querySelector("#detail-value").textContent = item.value;
@@ -242,6 +263,7 @@ document.querySelector("#clear-filters").addEventListener("click", () => {
   filters.type.value = "all";
   filters.topic.value = "all";
   filters.language.value = "all";
+  filters.status.value = "all";
   filters.sort.value = "newest";
   state.profileTopic = "all";
   state.profileLanguage = "all";
@@ -293,7 +315,7 @@ document.querySelector("#theme-button").addEventListener("click", () => {
 
 /* ---------- Sources réelles ---------- */
 const sourceStatus = {};
-const SOURCE_NAMES = Object.fromEntries([...LIVE_SOURCES.map((source) => [source.id, source.name]), ["events", "Conférences"], ["feeds", "Sources locales"]]);
+const SOURCE_NAMES = Object.fromEntries([...LIVE_SOURCES.map((source) => [source.id, source.name]), ["events", "Conférences"], ["challenges", "Challenges"], ["feeds", "Sources locales"]]);
 function renderSourceStatus() {
   const entries = Object.entries(sourceStatus).map(([id, info]) => ({ source: { name: SOURCE_NAMES[id] || id }, ...info }));
   document.querySelector("#source-chips").innerHTML = entries.map(({ source, status, count, error }) => {
@@ -434,10 +456,11 @@ function agendaEntries() {
   const today = new Date().toISOString().slice(0, 10);
   const out = [];
   for (const item of items) {
-    if (item.type !== "event") continue;
+    if (item.type !== "event" && item.type !== "challenge") continue;
+    if (item.status === "platform" || item.status === "ended") continue;
     const deadline = item.deadline || /date limite[^0-9]*(\d{4}-\d{2}-\d{2})/i.exec(item.value || "")?.[1];
     if (deadline && deadline >= today) out.push({ kind: "Date limite de soumission", date: deadline, item });
-    if (item.date >= today) out.push({ kind: "Début de l’événement", date: item.date, item });
+    if (item.date >= today) out.push({ kind: item.type === "challenge" ? "Début du challenge" : "Début de l’événement", date: item.date, item });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date)).slice(0, 40);
 }
@@ -474,7 +497,7 @@ function countdown(date) {
 }
 
 /* Tendances : 7 derniers jours contre les 7 précédents, d'après les dates des contenus collectés */
-const TREND_AXES = [["research", "Publications"], ["news", "Actualités"], ["software", "Logiciels"], ["dataset", "Données"], ["analysis", "Analyses"], ["video", "Vidéos"], ["job", "Emplois"], ["tender", "Marchés"]];
+const TREND_AXES = [["research", "Publications"], ["news", "Actualités"], ["software", "Logiciels"], ["dataset", "Données"], ["analysis", "Analyses"], ["challenge", "Challenges"], ["video", "Vidéos"], ["job", "Emplois"], ["tender", "Marchés"]];
 
 function computeTrends() {
   const now = Date.now();
