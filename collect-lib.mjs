@@ -99,7 +99,7 @@ export async function translateItems(items, { key, previous, limit = 150, model 
 }
 
 /* ---------- Résumé du jour ---------- */
-const DIGEST_SECTIONS = [["research", "Publications"], ["news", "Actualités et articles"], ["software", "Logiciels open source"], ["dataset", "Jeux de données"], ["video", "Vidéos et tutoriels"], ["event", "Événements à venir"], ["job", "Emplois"], ["tender", "Appels d’offres"]];
+const DIGEST_SECTIONS = [["research", "Publications"], ["news", "Actualités et articles"], ["software", "Logiciels open source"], ["dataset", "Jeux de données"], ["analysis", "Projets d’analyse"], ["video", "Vidéos et tutoriels"], ["event", "Événements à venir"], ["job", "Emplois"], ["tender", "Appels d’offres"]];
 
 export function buildDigest(items, intro = "") {
   const today = new Date().toISOString().slice(0, 10);
