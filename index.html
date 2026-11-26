@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f7f4">
   <title>Data Radar | Veille statistiques, data et informatique</title>
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
   <style>
     /* Mise en page : la barre latérale défile avec la page (plus de panneau fixe qui coupe le contenu) */
     .app-shell { display: grid; grid-template-columns: 256px minmax(0, 1fr); align-items: stretch; }
@@ -25,8 +25,8 @@
     [data-theme="dark"] .brand, [data-theme="dark"] .side-nav { background: var(--paper); }
   </style>
   <script src="data/items.js" defer></script>
-  <script src="sources.js?v=7" defer></script>
-  <script src="app.js?v=7" defer></script>
+  <script src="sources.js?v=8" defer></script>
+  <script src="app.js?v=8" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -104,7 +104,7 @@
           <h1>Les nouveautés en <span>data et informatique</span>, au même endroit.</h1>
           <p>Une veille mondiale pour les personnes qui travaillent en statistiques, science des données et technologies numériques.</p>
           <div class="hero-tags" aria-label="Contenus suivis">
-            <span>Recherche</span><span>Actualités</span><span>Logiciels</span><span>Données</span><span>Analyses</span><span>Vidéos</span><span>Emplois</span>
+            <span>Recherche</span><span>Actualités</span><span>Logiciels</span><span>Données</span><span>Analyses</span><span>Challenges</span><span>Vidéos</span><span>Emplois</span>
           </div>
         </div>
         <div class="hero-illustration" aria-hidden="true">
@@ -179,6 +179,7 @@
               <option value="software">Logiciels open source</option>
               <option value="dataset">Jeux de données et outils</option>
               <option value="analysis">Projets d’analyse publiés</option>
+              <option value="challenge">Challenges et hackathons</option>
               <option value="video">Vidéos et tutoriels</option>
               <option value="event">Événements</option>
               <option value="job">Emplois</option>
@@ -193,6 +194,16 @@
               <option value="data-science">Science des données</option>
               <option value="data-engineering">Ingénierie des données</option>
               <option value="it">Informatique</option>
+            </select>
+          </label>
+          <label class="filter-select">
+            <span class="sr-only">Statut</span>
+            <select id="status-filter">
+              <option value="all">Tous les statuts</option>
+              <option value="open">En cours</option>
+              <option value="upcoming">À venir</option>
+              <option value="ended">Terminés récemment</option>
+              <option value="platform">Plateformes</option>
             </select>
           </label>
           <label class="filter-select language-select">
@@ -211,6 +222,7 @@
             <select id="sort-filter" aria-label="Trier les contenus">
               <option value="newest">Plus récents</option>
               <option value="oldest">Plus anciens</option>
+              <option value="active">En cours d’abord</option>
             </select>
           </label>
         </div>
