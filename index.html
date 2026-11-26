@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f7f4">
   <title>Data Radar | Veille statistiques, data et informatique</title>
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=12">
   <style>
     /* Mise en page : la barre latérale défile avec la page (plus de panneau fixe qui coupe le contenu) */
     .app-shell { display: grid; grid-template-columns: 256px minmax(0, 1fr); align-items: stretch; }
@@ -25,8 +25,8 @@
     [data-theme="dark"] .brand, [data-theme="dark"] .side-nav { background: var(--paper); }
   </style>
   <script src="data/items.js" defer></script>
-  <script src="sources.js?v=10" defer></script>
-  <script src="app.js?v=10" defer></script>
+  <script src="sources.js?v=12" defer></script>
+  <script src="app.js?v=12" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -206,13 +206,6 @@
               <option value="platform">Plateformes</option>
             </select>
           </label>
-          <label class="filter-select">
-            <span class="sr-only">Dotation</span>
-            <select id="prize-filter">
-              <option value="all">Avec ou sans dotation</option>
-              <option value="yes">Avec dotation</option>
-            </select>
-          </label>
           <label class="filter-select language-select">
             <span class="sr-only">Langue du contenu</span>
             <select id="language-filter">
@@ -264,11 +257,18 @@
       <span class="section-kicker">POURQUOI C’EST UTILE</span>
       <p id="detail-value"></p>
     </div>
+    <div id="detail-check" class="detail-box detail-check" hidden>
+      <span class="section-kicker">AVANT DE VOUS INSCRIRE</span>
+      <p>Vérifiez les pays admis, les prix et les droits sur votre travail.</p>
+      <p id="detail-pays"></p>
+      <p id="detail-prize" hidden></p>
+    </div>
     <div class="dialog-source">
       <span>Source</span>
       <strong id="detail-source"></strong>
     </div>
     <p id="detail-disclaimer" class="dialog-disclaimer"></p>
+    <a id="detail-rules" class="button button-outline button-full" target="_blank" rel="noopener noreferrer" hidden>Règlement et pays admis</a>
     <a id="detail-link" class="button button-outline button-full" target="_blank" rel="noopener noreferrer" hidden>Lire la source originale</a>
     <button id="dialog-save" class="button button-dark button-full" type="button">Ajouter aux favoris</button>
   </dialog>
