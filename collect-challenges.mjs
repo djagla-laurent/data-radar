@@ -49,7 +49,7 @@ export function devpostItem(h, { make, clean, today }) {
   const place = h.displayed_location?.location;
   const when = dates ? `Du ${frDate(dates.start)} au ${frDate(dates.end)}` : (h.submission_period_dates || "Dates à confirmer");
   return make({
-    ...base, id: `devpost-${h.id}`, topic: "data-science", language: "en", status,
+    ...base, id: `devpost-${h.id}`, topic: "data-science", language: "en", status, prize: prize && !/^[$€£]?0$/.test(prize) ? prize : undefined,
     date: dates ? dates.start : today, deadline: status === "ended" ? undefined : dates?.end,
     source: `Devpost${noOrg ? "" : ` · ${org}`}`, url: h.url, title: clean(h.title, 200),
     summary: `${when}${place ? ` · ${place}` : ""}${themes.length ? ` · ${themes.join(", ")}` : ""}.`,
@@ -88,7 +88,7 @@ async function fromKaggle({ make, clean, env, today }) {
     const slug = String(c.ref || c.url || c.title).split("/").filter(Boolean).pop();
     const reward = clean(c.reward || "", 30);
     return make({
-      ...base, id: `kaggle-${slug}`, topic: "data-science", language: "en", status: "open",
+      ...base, id: `kaggle-${slug}`, topic: "data-science", language: "en", status: "open", prize: /\d/.test(reward) ? reward : undefined,
       date: String(c.enabledDate || c.dateEnabled || today).slice(0, 10), deadline: String(c.deadline).slice(0, 10),
       source: "Kaggle", url: String(c.url || "").startsWith("http") ? c.url : `https://www.kaggle.com/competitions/${slug}`,
       title: clean(c.title, 200), summary: clean(c.description, 240) || "Compétition de data science sur Kaggle.",
@@ -117,7 +117,7 @@ const platformItems = ({ make, today }) => PLATFORMS.map(([id, name, url, summar
 export function manualChallenges(list, { make, today }) {
   return (Array.isArray(list) ? list : []).filter((e) => e?.type === "challenge" && e.title && e.url).map((e, index) => make({
     ...base, id: `manual-challenge-${index}-${String(e.date || e.deadline || today).slice(0, 10)}`, topic: e.topic || "data-science", language: e.language || "fr",
-    status: ["open", "upcoming", "ended"].includes(e.status) ? e.status : "open", date: String(e.date || today).slice(0, 10), deadline: e.deadline,
+    status: ["open", "upcoming", "ended"].includes(e.status) ? e.status : "open", date: String(e.date || today).slice(0, 10), deadline: e.deadline, prize: e.prize,
     source: e.source || "Ajout manuel", url: e.url, title: e.title,
     summary: e.summary || [e.place, e.deadline && `date limite : ${e.deadline}`].filter(Boolean).join(" · ") || "Challenge ajouté manuellement.",
     value: e.value || "Challenge ajouté par l’équipe du projet. Vérifiez les conditions sur la page officielle."
