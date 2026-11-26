@@ -39,6 +39,7 @@ const filters = {
   topic: document.querySelector("#topic-filter"),
   language: document.querySelector("#language-filter"),
   status: document.querySelector("#status-filter"),
+  prize: document.querySelector("#prize-filter"),
   sort: document.querySelector("#sort-filter")
 };
 const state = {
@@ -93,6 +94,7 @@ function getVisibleItems() {
     const showPlatform = item.status !== "platform" || filters.type.value === "challenge" || search || filters.status.value === "platform";
     return matchesProfile && showPlatform
       && (filters.status.value === "all" || item.status === filters.status.value)
+      && (filters.prize.value === "all" || Boolean(item.prize))
       && (!search || searchable.includes(search))
       && (filters.type.value === "all" || item.type === filters.type.value)
       && (filters.topic.value === "all" || item.topic === filters.topic.value)
@@ -120,6 +122,7 @@ function renderCard(item) {
         <div class="card-type-wrap">
           <span class="type-badge type-${escapeHtml(item.type)}">${escapeHtml(item.typeLabel)}</span>
           <span class="topic-tag">${escapeHtml(item.topicLabel)}</span>
+          ${item.prize ? `<span class="prize-pill">Dotation : ${escapeHtml(item.prize)}</span>` : ""}
           ${item.status ? `<span class="status-pill status-${escapeHtml(item.status)}">${escapeHtml(statusText(item))}</span>` : ""}
         </div>
         <button class="save-button${saved ? " saved" : ""}" type="button" data-save="${escapeHtml(item.id)}"
@@ -268,6 +271,7 @@ document.querySelector("#clear-filters").addEventListener("click", () => {
   filters.topic.value = "all";
   filters.language.value = "all";
   filters.status.value = "all";
+  filters.prize.value = "all";
   filters.sort.value = "newest";
   state.profileTopic = "all";
   state.profileLanguage = "all";
