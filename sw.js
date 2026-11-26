@@ -1,5 +1,5 @@
 /* Service worker : toujours le plus récent quand il y a du réseau, dernière copie en mémoire sinon. */
-const CACHE = "data-radar-v4";
+const CACHE = "data-radar-v5";
 const SHELL = ["./", "index.html", "styles.css", "app.js", "sources.js", "manifest.webmanifest", "icon-192.png"];
 
 self.addEventListener("install", (event) => {
