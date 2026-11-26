@@ -165,27 +165,44 @@ async function fromArbeitnow() {
 async function fromZenodo() {
   const searches = [
     ['"statistical analysis"', "statistics", "en"],
-    ['"data analysis" AND (dataset OR notebook OR code)', "data-science", "en"],
+    ['"data analysis"', "data-science", "en"],
     ['"analyse statistique" OR "analyse de données"', "statistics", "fr"],
-    ['(Benin OR Bénin) AND (statistics OR statistiques OR "data analysis")', "statistics", "fr"]
+    ['Benin AND (statistics OR "data analysis")', "statistics", "en"],
+    ['Bénin AND (statistiques OR "analyse de données")', "statistics", "fr"]
   ];
-  const results = await Promise.all(searches.map(async ([query, topic, lang]) => {
-    const url = `https://zenodo.org/api/records?q=${encodeURIComponent(query)}&type=publication&access_status=open&sort=mostrecent&size=6`;
-    const data = await (await fetchWithTimeout(url, 12000)).json();
-    return (data.hits?.hits || []).map((record) => {
-      const meta = record.metadata || {};
-      const authors = (meta.creators || []).map((c) => c.name).filter(Boolean);
-      const kind = meta.resource_type?.title || "Publication";
-      return make({
-        id: `zenodo-${record.id}`, type: "analysis", typeLabel: "Projet d’analyse", topic, language: lang,
-        date: meta.publication_date || record.created, source: `Zenodo${authors[0] ? ` · ${authors[0]}${authors.length > 1 ? " et al." : ""}` : ""}`,
-        url: record.links?.self_html || `https://zenodo.org/records/${record.id}`, title: clean(meta.title, 200),
-        summary: clean(meta.description, 260) || "Étude déposée sur Zenodo.",
-        value: `${kind} publié en accès libre sur Zenodo, souvent accompagné de ses données ou de son code. Vérifiez la licence et la méthode sur la fiche.`
-      });
-    });
-  }));
-  return results.flat();
+  const found = [], errors = [];
+  /* Requêtes une par une : une requête refusée n’annule pas les autres. */
+  for (const [query, topic, lang] of searches) {
+    try {
+      const url = `https://zenodo.org/api/records?q=${encodeURIComponent(query)}&type=publication&access_status=open&sort=mostrecent&size=6`;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+      let response;
+      try {
+        response = await fetch(url, { signal: controller.signal, headers: { Accept: "application/json", "User-Agent": "DataRadar/1.0 (+https://github.com/djagla-laurent/data-radar)" } });
+      } finally { clearTimeout(timer); }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      for (const record of data.hits?.hits || []) {
+        const meta = record.metadata || {};
+        const authors = (meta.creators || []).map((c) => c.name).filter(Boolean);
+        const kind = meta.resource_type?.title || "Publication";
+        if (!meta.title) continue;
+        found.push(make({
+          id: `zenodo-${record.id}`, type: "analysis", typeLabel: "Projet d’analyse", topic, language: lang,
+          date: meta.publication_date || record.created || new Date().toISOString(), source: `Zenodo${authors[0] ? ` · ${authors[0]}${authors.length > 1 ? " et al." : ""}` : ""}`,
+          url: record.links?.self_html || `https://zenodo.org/records/${record.id}`, title: clean(meta.title, 200),
+          summary: clean(meta.description, 260) || "Étude déposée sur Zenodo.",
+          value: `${kind} publié en accès libre sur Zenodo, souvent accompagné de ses données ou de son code. Vérifiez la licence et la méthode sur la fiche.`
+        }));
+      }
+    } catch (error) {
+      errors.push(error.name === "AbortError" ? "délai dépassé" : error.message);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  if (!found.length) throw new Error(`Zenodo : ${[...new Set(errors)].join(", ") || "aucun résultat"}`);
+  return found;
 }
 
 const LIVE_SOURCES = [
