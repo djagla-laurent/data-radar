@@ -237,7 +237,7 @@ a { color: inherit; }
 .favorite-toggle[aria-pressed="true"] { border-color: #d6c9f0; background: #f7f4ff; color: #655391; }
 .count-badge { display: grid; min-width: 18px; height: 18px; padding: 0 4px; place-items: center; border-radius: 10px; background: #f0f2ef; font-size: 9px; }
 
-.filters { display: grid; grid-template-columns: minmax(200px, 1.4fr) minmax(160px, 1fr) minmax(150px, .85fr) minmax(120px, .65fr) minmax(120px, .65fr) minmax(130px, .7fr); gap: 8px; margin-top: 18px; }
+.filters { display: grid; grid-template-columns: minmax(200px, 1.4fr) minmax(160px, 1fr) minmax(150px, .85fr) minmax(120px, .65fr) minmax(120px, .65fr); gap: 8px; margin-top: 18px; }
 .search-box { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 11px; border: 1px solid #e3e8e2; border-radius: 7px; background: #fff; color: #849087; }
 .search-box > span { font-size: 21px; line-height: 1; transform: rotate(-20deg); }
 .search-box input { width: 100%; border: 0; outline: 0; color: var(--ink); font-size: 10px; }
@@ -260,7 +260,7 @@ a { color: inherit; }
 .type-dataset { background: #edf4df; color: #647e3b; }
 .type-analysis { background: #e4f4f1; color: #3f857a; }
 .type-challenge { background: #e8ebff; color: #5560a8; }
-.prize-pill { padding: 3px 7px; border-radius: 99px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #fdf1cc; color: #8a6a0f; }
+.country-pill { padding: 3px 7px; border-radius: 99px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #def3e3; color: #2f7a45; }
 .status-pill { padding: 3px 7px; border-radius: 99px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #eef0ee; color: #6a756d; }
 .status-open { background: #def3e3; color: #2f7a45; }
 .status-upcoming { background: #e1ecfb; color: #3b6aa6; }
@@ -464,7 +464,7 @@ a.card-open { text-decoration: none; }
 [data-theme="dark"] .type-dataset { background: #2b3520; color: #bcd68f; }
 [data-theme="dark"] .type-analysis { background: #1d3532; color: #8fd3c7; }
 [data-theme="dark"] .type-challenge { background: #252a47; color: #aab4f0; }
-[data-theme="dark"] .prize-pill { background: #3a3216; color: #e8cf7a; }
+[data-theme="dark"] .country-pill { background: #1e3626; color: #8fd4a2; }
 [data-theme="dark"] .status-pill { background: #202c25; color: #aab6ae; }
 [data-theme="dark"] .status-open { background: #1e3626; color: #8fd4a2; }
 [data-theme="dark"] .status-upcoming { background: #1f2d44; color: #9fc0ee; }
@@ -567,3 +567,5 @@ html { scroll-behavior: smooth; }
 [data-theme="dark"] .count-pill.urgent { background: #402424; color: #efb5b5; }
 [data-theme="dark"] .radar .rc { fill: rgba(143, 208, 169, .2); stroke: var(--green); }
 [data-theme="dark"] .key-now { border-top-color: var(--green); }
+
+.detail-check p { margin: 6px 0 0; font-size: 11px; line-height: 1.5; }
