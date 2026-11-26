@@ -232,6 +232,10 @@ Object.values(filters).forEach((control) => {
   control.addEventListener(control === filters.search ? "input" : "change", refresh);
 });
 
+filters.type.addEventListener("change", () => {
+  if (filters.type.value === "challenge" && filters.sort.value === "newest") { filters.sort.value = "active"; refresh(); }
+});
+
 document.querySelector("#favorites-toggle").addEventListener("click", (event) => {
   state.favoritesOnly = !state.favoritesOnly;
   event.currentTarget.setAttribute("aria-pressed", String(state.favoritesOnly));
