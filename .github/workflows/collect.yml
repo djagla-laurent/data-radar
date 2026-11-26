@@ -1,0 +1,52 @@
+name: Collecte automatique
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore: ["data/**"]
+permissions:
+  contents: write
+concurrency:
+  group: collecte
+  cancel-in-progress: false
+jobs:
+  collecter:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+      DIGEST_TO: ${{ secrets.DIGEST_TO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save @xmldom/xmldom@0.9.12 js-yaml@5.5.0
+      - run: node collect.mjs
+      - id: hour
+        run: echo "h=$(date -u +%H)" >> "$GITHUB_OUTPUT"
+      - name: Envoyer le résumé du matin par e-mail
+        if: env.SMTP_SERVER != '' && env.DIGEST_TO != '' && (github.event_name == 'workflow_dispatch' || steps.hour.outputs.h == '06' || steps.hour.outputs.h == '07')
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Data Radar · résumé du jour
+          to: ${{ secrets.DIGEST_TO }}
+          from: Data Radar <${{ secrets.SMTP_USERNAME }}>
+          html_body: file://data/digest.html
+      - name: Enregistrer les données dans le dépôt
+        run: |
+          git config user.name "data-radar-bot"
+          git config user.email "data-radar-bot@users.noreply.github.com"
+          git add -f data/items.json data/items.js
+          if git diff --cached --quiet; then
+            echo "Aucun changement"
+          else
+            git commit -m "Collecte automatique $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
