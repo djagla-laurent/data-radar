@@ -39,7 +39,6 @@ const filters = {
   topic: document.querySelector("#topic-filter"),
   language: document.querySelector("#language-filter"),
   status: document.querySelector("#status-filter"),
-  prize: document.querySelector("#prize-filter"),
   sort: document.querySelector("#sort-filter")
 };
 const state = {
@@ -74,6 +73,19 @@ function formatDate(dateString) {
 /* Challenges et hackathons : statut (en cours, à venir, terminé) et plateformes permanentes */
 const STATUS_LABELS = { open: "En cours", upcoming: "À venir", ended: "Terminé", platform: "Plateforme" };
 const STATUS_RANK = { open: 0, upcoming: 1, platform: 2, ended: 3 };
+/* Page du règlement (pays admis, prix, droits) : Devpost et Kaggle ont une page /rules ; sinon le champ rulesUrl d’un ajout manuel. */
+function rulesUrlOf(item) {
+  if (item.rulesUrl) return item.rulesUrl;
+  if (item.type !== "challenge" || !item.url) return "";
+  try {
+    const url = new URL(item.url);
+    const known = (item.id.startsWith("devpost-") && url.hostname.endsWith("devpost.com")) || (item.id.startsWith("kaggle-") && url.hostname.endsWith("kaggle.com"));
+    if (!known) return "";
+    url.search = ""; url.hash = ""; url.pathname = `${url.pathname.replace(/\/+$/, "")}/rules`;
+    return url.href;
+  } catch { return ""; }
+}
+
 function statusText(item) {
   if (!item.status) return "";
   const until = item.status === "open" && item.deadline ? ` · jusqu’au ${formatDate(item.deadline)}` : "";
@@ -94,7 +106,6 @@ function getVisibleItems() {
     const showPlatform = item.status !== "platform" || filters.type.value === "challenge" || search || filters.status.value === "platform";
     return matchesProfile && showPlatform
       && (filters.status.value === "all" || item.status === filters.status.value)
-      && (filters.prize.value === "all" || Boolean(item.prize))
       && (!search || searchable.includes(search))
       && (filters.type.value === "all" || item.type === filters.type.value)
       && (filters.topic.value === "all" || item.topic === filters.topic.value)
@@ -122,7 +133,7 @@ function renderCard(item) {
         <div class="card-type-wrap">
           <span class="type-badge type-${escapeHtml(item.type)}">${escapeHtml(item.typeLabel)}</span>
           <span class="topic-tag">${escapeHtml(item.topicLabel)}</span>
-          ${item.prize ? `<span class="prize-pill">Dotation : ${escapeHtml(item.prize)}</span>` : ""}
+          ${item.pays ? `<span class="country-pill" title="Éligibilité vérifiée par l’équipe du projet">Pays vérifiés : ${escapeHtml(item.pays)}</span>` : ""}
           ${item.status ? `<span class="status-pill status-${escapeHtml(item.status)}">${escapeHtml(statusText(item))}</span>` : ""}
         </div>
         <button class="save-button${saved ? " saved" : ""}" type="button" data-save="${escapeHtml(item.id)}"
@@ -206,7 +217,18 @@ function openDetails(id) {
   document.querySelector("#detail-language").textContent = `${item.topicLabel} · ${languageNames[item.language]} · ${formatDate(item.date)}${item.status ? ` · ${statusText(item)}` : ""}`;
   document.querySelector("#detail-title").textContent = titleOf(item);
   document.querySelector("#detail-summary").textContent = summaryOf(item);
-  document.querySelector("#detail-value").textContent = item.value;
+  /* le montant de la dotation est affiché à part, comme « déclaré » : on le retire du texte d’origine */
+  document.querySelector("#detail-value").textContent = item.type === "challenge" ? String(item.value).replace(/, dotation : [^.]*\./, ".") : item.value;
+  const isChallenge = item.type === "challenge";
+  document.querySelector("#detail-check").hidden = !isChallenge;
+  document.querySelector("#detail-pays").textContent = item.pays ? `Éligibilité vérifiée par l’équipe du projet : ${item.pays}.` : "Pays admis : non vérifié. Consultez le règlement avant de participer.";
+  const prizeLine = document.querySelector("#detail-prize");
+  prizeLine.hidden = !(isChallenge && item.prize);
+  prizeLine.textContent = item.prize ? `Dotation déclarée par l’organisateur (non vérifiée) : ${item.prize}. Elle peut additionner plusieurs lots ou compter des crédits.` : "";
+  const rules = document.querySelector("#detail-rules");
+  const rulesUrl = rulesUrlOf(item);
+  rules.hidden = !rulesUrl;
+  if (rulesUrl) rules.href = rulesUrl;
   document.querySelector("#detail-source").textContent = item.source;
   document.querySelector("#detail-disclaimer").textContent = item.titleFr
       ? `Traduit automatiquement. Titre original : ${item.title}. Seule la page originale fait foi.`
@@ -271,7 +293,6 @@ document.querySelector("#clear-filters").addEventListener("click", () => {
   filters.topic.value = "all";
   filters.language.value = "all";
   filters.status.value = "all";
-  filters.prize.value = "all";
   filters.sort.value = "newest";
   state.profileTopic = "all";
   state.profileLanguage = "all";
