@@ -1,19 +1,18 @@
-name: Collecte et publication
+name: Collecte automatique
 on:
   schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch:
   push:
     branches: [main]
+    paths-ignore: ["data/**"]
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: collecte
+  cancel-in-progress: false
 jobs:
-  build:
+  collecter:
     runs-on: ubuntu-latest
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -40,19 +39,14 @@ jobs:
           to: ${{ secrets.DIGEST_TO }}
           from: Data Radar <${{ secrets.SMTP_USERNAME }}>
           html_body: file://data/digest.html
-      - run: |
-          mkdir -p _site/data
-          cp index.html app.js sources.js styles.css _site/
-          cp data/items.json data/items.js _site/data/
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Enregistrer les données dans le dépôt
+        run: |
+          git config user.name "data-radar-bot"
+          git config user.email "data-radar-bot@users.noreply.github.com"
+          git add -f data/items.json data/items.js
+          if git diff --cached --quiet; then
+            echo "Aucun changement"
+          else
+            git commit -m "Collecte automatique $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
