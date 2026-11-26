@@ -99,14 +99,16 @@ export async function translateItems(items, { key, previous, limit = 150, model 
 }
 
 /* ---------- Résumé du jour ---------- */
-const DIGEST_SECTIONS = [["research", "Publications"], ["news", "Actualités et articles"], ["software", "Logiciels open source"], ["dataset", "Jeux de données"], ["analysis", "Projets d’analyse"], ["video", "Vidéos et tutoriels"], ["event", "Événements à venir"], ["job", "Emplois"], ["tender", "Appels d’offres"]];
+const DIGEST_SECTIONS = [["research", "Publications"], ["news", "Actualités et articles"], ["software", "Logiciels open source"], ["dataset", "Jeux de données"], ["analysis", "Projets d’analyse"], ["video", "Vidéos et tutoriels"], ["event", "Événements à venir"], ["challenge", "Challenges et hackathons"], ["job", "Emplois"], ["tender", "Appels d’offres"]];
 
 export function buildDigest(items, intro = "") {
   const today = new Date().toISOString().slice(0, 10);
   const sections = DIGEST_SECTIONS.map(([type, label]) => {
-    const pool = items.filter((item) => item.type === type && !item.demo);
+    const pool = items.filter((item) => item.type === type && !item.demo && item.status !== "platform");
     const picked = type === "event"
       ? pool.filter((item) => item.date >= today).sort((a, b) => a.date.localeCompare(b.date))
+      : type === "challenge"
+      ? pool.filter((item) => item.status === "open" || item.status === "upcoming").sort((a, b) => (a.deadline || "9").localeCompare(b.deadline || "9"))
       : pool.filter((item) => item.date <= today).sort((a, b) => b.date.localeCompare(a.date));
     return { type, label, items: picked.slice(0, 3).map((item) => ({ title: item.titleFr || item.title, url: item.url, source: item.source, date: item.date })) };
   }).filter((section) => section.items.length);
