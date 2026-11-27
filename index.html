@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f7f4">
   <title>Data Radar | Veille statistiques, data et informatique</title>
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
   <style>
     /* Mise en page : la barre latérale défile avec la page (plus de panneau fixe qui coupe le contenu) */
     .app-shell { display: grid; grid-template-columns: 256px minmax(0, 1fr); align-items: stretch; }
@@ -25,8 +25,8 @@
     [data-theme="dark"] .brand, [data-theme="dark"] .side-nav { background: var(--paper); }
   </style>
   <script src="data/items.js" defer></script>
-  <script src="sources.js?v=13" defer></script>
-  <script src="app.js?v=13" defer></script>
+  <script src="sources.js?v=15" defer></script>
+  <script src="app.js?v=15" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -227,6 +227,32 @@
               <option value="sciences">Sciences</option>
             </select>
           </label>
+          <label class="filter-select job-filter" hidden>
+            <span class="sr-only">Profil</span>
+            <select id="profile-filter">
+              <option value="all">Tous les profils</option>
+              <option value="statisticien">Statisticien</option>
+              <option value="econometre">Économiste / Économètre</option>
+              <option value="suivi-eval">Suivi-évaluation et études</option>
+              <option value="analyste">Data analyst / BI</option>
+              <option value="data-manager">Data manager</option>
+              <option value="scientist">Data scientist / IA</option>
+              <option value="sig">SIG et cartographie</option>
+              <option value="engineer">Ingénieur données</option>
+              <option value="dev">Développement logiciel</option>
+            </select>
+          </label>
+          <label class="filter-select job-filter" hidden>
+            <span class="sr-only">Lieu</span>
+            <select id="place-filter">
+              <option value="all">Tous les lieux</option>
+              <option value="benin">Bénin</option>
+              <option value="africa">Afrique</option>
+              <option value="remote">À distance · ouvert au monde</option>
+              <option value="remote-limited">À distance · région limitée</option>
+              <option value="abroad">Sur place hors Afrique</option>
+            </select>
+          </label>
           <label class="filter-select">
             <span class="sr-only">Statut</span>
             <select id="status-filter">
@@ -254,6 +280,7 @@
               <option value="newest">Plus récents</option>
               <option value="oldest">Plus anciens</option>
               <option value="active">En cours d’abord</option>
+              <option value="relevance">Pertinence (emplois)</option>
             </select>
           </label>
         </div>
@@ -289,8 +316,8 @@
       <p id="detail-value"></p>
     </div>
     <div id="detail-check" class="detail-box detail-check" hidden>
-      <span class="section-kicker">AVANT DE VOUS INSCRIRE</span>
-      <p>Vérifiez les pays admis, les prix et les droits sur votre travail.</p>
+      <span id="detail-check-kicker" class="section-kicker">AVANT DE VOUS INSCRIRE</span>
+      <p id="detail-check-text">Vérifiez les pays admis, les prix et les droits sur votre travail.</p>
       <p id="detail-pays"></p>
       <p id="detail-prize" hidden></p>
     </div>
