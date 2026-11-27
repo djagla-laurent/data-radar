@@ -7,6 +7,7 @@ import { DOMParser } from "@xmldom/xmldom";
 import { load as loadYaml } from "js-yaml";
 import { collectChallenges } from "./collect-challenges.mjs";
 import { assignSectors } from "./collect-sectors.mjs";
+import { collectJobs, refineJobs } from "./collect-jobs.mjs";
 import { collectFeeds, translateItems, buildDigest, digestIntro, digestHtml } from "./collect-lib.mjs";
 
 const root = new URL("./", import.meta.url);
@@ -54,7 +55,7 @@ async function collectEvents() {
   try {
     const manual = JSON.parse(fs.readFileSync(new URL("manual-events.json", root), "utf8"));
     for (const [index, event] of manual.entries()) {
-      if (event.type === "challenge") continue; /* traité par collect-challenges.mjs */
+      if (event.type === "challenge" || event.type === "job") continue; /* traité par collect-challenges.mjs */
       found.push(make({
         id: `manual-${index}-${event.date}`, type: "event", typeLabel: "Événement", topic: event.topic || "data-science", language: event.language || "fr",
         date: event.date, source: event.source || "Ajout manuel", url: event.url, title: event.title,
@@ -77,6 +78,12 @@ challenges.errors.forEach((message) => console.warn(`Challenges ignorés : ${mes
 status.challenges = challenges.live ? { status: "ok", count: challenges.items.length, error: challenges.errors.join(" | ") || undefined } : { status: "error", count: 0, error: challenges.errors.join(" | ") || "aucun challenge en cours trouvé" };
 items.push(...challenges.items);
 
+/* ---------- Emplois à distance (Himalayas, Jobicy) et ajouts manuels ---------- */
+const jobs = await collectJobs({ make, clean, fetchJson: async (url) => (await fetchWithTimeout(url, 20000)).json(), manual: manualList });
+jobs.errors.forEach((message) => console.warn(`Emplois ignorés : ${message}`));
+status.jobs = jobs.items.length ? { status: "ok", count: jobs.items.length, error: jobs.errors.join(" | ") || undefined } : { status: "error", count: 0, error: jobs.errors.join(" | ") || "aucune offre trouvée" };
+items.push(...jobs.items);
+
 /* ---------- Sources locales (collector/feeds.json) ---------- */
 const feeds = JSON.parse(fs.readFileSync(new URL("feeds.json", root), "utf8"));
 const local = await collectFeeds(feeds, { make, clean, fetchText: async (url) => (await fetchWithTimeout(url, 15000)).text() });
@@ -94,6 +101,7 @@ async function loadPrevious() {
     return new Map(old.items.map((item) => [item.id, item]));
   } catch { return new Map(); }
 }
+{ const refined = refineJobs(items); items.length = 0; items.push(...refined); } /* profils, lieu, score ; retire les offres sans rapport */
 console.log(`Secteurs : ${assignSectors(items)} contenus classés.`);
 const key = process.env.ANTHROPIC_API_KEY;
 const translation = await translateItems(items, { key, previous: await loadPrevious() });
