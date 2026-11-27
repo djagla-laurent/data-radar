@@ -33,7 +33,7 @@ export function profilesOf(title, summary, max = 2) {
 }
 
 /* ---------- Lieu ---------- */
-const BENIN = /b[ée]nin|cotonou|porto[- ]novo|parakou|abomey|bohicon|ouidah|djougou/i;
+const BENIN = /b[ée]nin|cotonou|porto[- ]novo|parakou|abomey|bohicon|ouidah|djougou|instad|insae/i;
 const WORLD = /worldwide|anywhere|global|all countries|work from anywhere|international|monde entier/i;
 const AFRICA_REGION = /africa|afrique|emea/i;
 const AFRICAN_COUNTRY = /nigeria|ghana|s[ée]n[ée]gal|c[ôo]te d.ivoire|ivory coast|togo|burkina|mali\b|niger\b|cameroun|cameroon|kenya|rwanda|maroc|morocco|tunisi|alg[ée]ri|egypt|[ée]gypte|ethiopi|tanzani|ugand|congo|gabon|guin[ée]e|mauritani|madagascar|zambi|zimbabw|south africa|afrique du sud|angola|mozambi|namibi|botswana|dakar|abidjan|lagos|nairobi|accra/i;
@@ -41,7 +41,11 @@ const AFRICAN_COUNTRY = /nigeria|ghana|s[ée]n[ée]gal|c[ôo]te d.ivoire|ivory c
 export const PLACE_LABELS = { benin: "Bénin", africa: "Afrique", remote: "À distance · ouvert au monde", "remote-limited": "À distance · région limitée", abroad: "Sur place hors Afrique" };
 
 export function placeOf(item) {
-  if (item.place && PLACE_LABELS[item.place]) return item.place; /* imposé par la source (flux Bénin…) */
+  if (item.place === "benin") {
+    /* les flux presse « Bénin » peuvent ramener l’annonce d’un autre pays : le titre prime sur l’indication du flux */
+    return !BENIN.test(item.title) && AFRICAN_COUNTRY.test(item.title) ? "africa" : "benin";
+  }
+  if (item.place && PLACE_LABELS[item.place]) return item.place; /* imposé par la source */
   const where = String(item.where || "").trim();
   /* offre à distance : le Bénin dans la liste des pays admis veut dire « ouvert au Bénin », pas « basé au Bénin » */
   if (item.remote) return !where || WORLD.test(where) || AFRICA_REGION.test(where) || BENIN.test(where) ? "remote" : "remote-limited";
