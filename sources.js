@@ -148,11 +148,12 @@ async function fromPeerTube() {
 
 async function fromRemotive() {
   {
-    const data = await (await fetchWithTimeout("https://remotive.com/api/remote-jobs?category=data&limit=15")).json();
+    const data = await (await fetchWithTimeout("https://remotive.com/api/remote-jobs?category=data&limit=60")).json();
     return (data.jobs || []).map((job) => make({
       id: `remotive-${job.id}`, type: "job", typeLabel: "Emploi", topic: "data-science",
       date: job.publication_date, source: `Remotive · ${job.company_name}`, url: job.url, title: job.title,
       summary: clean(job.description, 220),
+      remote: true, where: job.candidate_required_location || "",
       value: `Poste à distance${job.candidate_required_location ? ` (${job.candidate_required_location})` : ""}${job.job_type ? `, ${String(job.job_type).replace("_", " ")}` : ""}.`
     }));
   }
@@ -165,6 +166,7 @@ async function fromArbeitnow() {
     id: `arbeitnow-${job.slug}`, type: "job", typeLabel: "Emploi",
     language: /\b(und|der|die|das|wir|für|mit|sie)\b/i.test(String(job.description).slice(0, 500)) ? "de" : "en",
     topic: /engineer|etl|devops|pipeline/i.test(job.title) ? "data-engineering" : /statist/i.test(job.title) ? "statistics" : "data-science",
+    remote: Boolean(job.remote), where: job.location || "",
     date: new Date(job.created_at * 1000).toISOString(), source: `Arbeitnow · ${job.company_name}`, url: job.url, title: job.title,
     summary: clean(job.description, 220),
     value: `${job.remote ? "À distance" : job.location || "Sur site"}${job.job_types?.length ? `, ${job.job_types.join(", ")}` : ""}.`
