@@ -22,13 +22,15 @@ async function fetchWithTimeout(url, ms = 9000) {
   }
 }
 
-const ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const NAMED = "agrave à aacute á acirc â atilde ã auml ä aring å aelig æ ccedil ç egrave è eacute é ecirc ê euml ë igrave ì iacute í icirc î iuml ï ntilde ñ ograve ò oacute ó ocirc ô otilde õ ouml ö oslash ø ugrave ù uacute ú ucirc û uuml ü yacute ý yuml ÿ oelig œ";
+const ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", szlig: "ß", ldquo: "“", rdquo: "”", lsquo: "‘", rsquo: "’", sbquo: "‚", bdquo: "„", laquo: "«", raquo: "»", hellip: "…", ndash: "–", mdash: "—", bull: "•", middot: "·", times: "×", deg: "°", plusmn: "±", euro: "€", copy: "©", reg: "®", trade: "™", micro: "µ", ensp: " ", emsp: " ", thinsp: " " };
+NAMED.split(" ").forEach((value, index, list) => { if (index % 2 === 0) { ENTITIES[value] = list[index + 1]; ENTITIES[value[0].toUpperCase() + value.slice(1)] = list[index + 1].toUpperCase(); } });
 const decode = (text) => String(text).replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, code) => {
   if (code[0] === "#") {
     const number = code[1].toLowerCase() === "x" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
     return Number.isFinite(number) && number > 0 && number <= 0x10ffff ? String.fromCodePoint(number) : match;
   }
-  return ENTITIES[code.toLowerCase()] ?? match;
+  return ENTITIES[code] ?? ENTITIES[code.toLowerCase()] ?? match;
 });
 
 const clean = (text, max = 240) => {
@@ -36,13 +38,22 @@ const clean = (text, max = 240) => {
   return value.length > max ? `${value.slice(0, max - 1).trimEnd()}…` : value;
 };
 
+/* Lance plusieurs requêtes : celles qui réussissent sont gardées ; la source n’échoue que si toutes échouent. */
+async function settleAll(promises) {
+  const results = await Promise.allSettled(promises);
+  const ok = results.filter((r) => r.status === "fulfilled").flatMap((r) => r.value);
+  const failed = results.find((r) => r.status === "rejected");
+  if (!ok.length && failed) throw failed.reason;
+  return ok;
+}
+
 function make(base) {
   return { language: "en", topicLabel: TOPIC_LABELS[base.topic], live: true, ...base, date: String(base.date).slice(0, 10) };
 }
 
 async function fromHackerNews() {
   const queries = [["statistics", "statistics"], ["machine learning", "data-science"], ["data engineering", "data-engineering"], ["programming", "it"]];
-  const results = await Promise.all(queries.map(async ([query, topic]) => {
+  const results = await settleAll(queries.map(async ([query, topic]) => {
     const url = `https://hn.algolia.com/api/v1/search_by_date?tags=story&query=${encodeURIComponent(query)}&numericFilters=points%3E10&hitsPerPage=6`;
     const data = await (await fetchWithTimeout(url)).json();
     return data.hits.filter((hit) => hit.title).map((hit) => make({
@@ -59,7 +70,7 @@ async function fromHackerNews() {
 
 async function fromDevTo() {
   const tags = [["statistics", "statistics"], ["datascience", "data-science"], ["dataengineering", "data-engineering"], ["programming", "it"]];
-  const results = await Promise.all(tags.map(async ([tag, topic]) => {
+  const results = await settleAll(tags.map(async ([tag, topic]) => {
     const data = await (await fetchWithTimeout(`https://dev.to/api/articles?tag=${tag}&per_page=6&top=7`)).json();
     return data.map((article) => make({
       id: `devto-${article.id}`, type: "news", typeLabel: "Article et actualité", topic,
@@ -75,7 +86,7 @@ async function fromDevTo() {
 async function fromGitHub() {
   const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
   const topics = [["statistics", "statistics"], ["data-science", "data-science"], ["data-engineering", "data-engineering"]];
-  const results = await Promise.all(topics.map(async ([topic, area]) => {
+  const results = await settleAll(topics.map(async ([topic, area]) => {
     const url = `https://api.github.com/search/repositories?q=topic:${topic}+pushed:%3E${since}&sort=stars&order=desc&per_page=6`;
     const data = await (await fetchWithTimeout(url)).json();
     return data.items.map((repo) => make({
@@ -121,7 +132,7 @@ async function fromHuggingFace() {
 
 async function fromPeerTube() {
   const searches = [["statistiques", "statistics", "fr"], ["science des données", "data-science", "fr"], ["programmation python", "it", "fr"], ["data engineering", "data-engineering", "en"]];
-  const results = await Promise.all(searches.map(async ([query, topic, lang]) => {
+  const results = await settleAll(searches.map(async ([query, topic, lang]) => {
     const url = `https://sepiasearch.org/api/v1/search/videos?search=${encodeURIComponent(query)}&sort=-publishedAt&count=6&languageOneOf=${lang}`;
     const data = await (await fetchWithTimeout(url)).json();
     return (data.data || []).map((video) => make({
