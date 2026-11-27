@@ -6,6 +6,7 @@ import vm from "node:vm";
 import { DOMParser } from "@xmldom/xmldom";
 import { load as loadYaml } from "js-yaml";
 import { collectChallenges } from "./collect-challenges.mjs";
+import { assignSectors } from "./collect-sectors.mjs";
 import { collectFeeds, translateItems, buildDigest, digestIntro, digestHtml } from "./collect-lib.mjs";
 
 const root = new URL("./", import.meta.url);
@@ -93,6 +94,7 @@ async function loadPrevious() {
     return new Map(old.items.map((item) => [item.id, item]));
   } catch { return new Map(); }
 }
+console.log(`Secteurs : ${assignSectors(items)} contenus classés.`);
 const key = process.env.ANTHROPIC_API_KEY;
 const translation = await translateItems(items, { key, previous: await loadPrevious() });
 if (translation.skipped) console.warn("ANTHROPIC_API_KEY absente : contenus laissés dans leur langue d’origine.");
