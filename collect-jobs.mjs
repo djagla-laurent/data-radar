@@ -43,8 +43,9 @@ export const PLACE_LABELS = { benin: "Bénin", africa: "Afrique", remote: "À di
 export function placeOf(item) {
   if (item.place && PLACE_LABELS[item.place]) return item.place; /* imposé par la source (flux Bénin…) */
   const where = String(item.where || "").trim();
+  /* offre à distance : le Bénin dans la liste des pays admis veut dire « ouvert au Bénin », pas « basé au Bénin » */
+  if (item.remote) return !where || WORLD.test(where) || AFRICA_REGION.test(where) || BENIN.test(where) ? "remote" : "remote-limited";
   if (BENIN.test(where) || BENIN.test(item.title)) return "benin";
-  if (item.remote) return !where || WORLD.test(where) || AFRICA_REGION.test(where) ? "remote" : "remote-limited";
   if (AFRICA_REGION.test(where) || AFRICAN_COUNTRY.test(where)) return "africa";
   return where ? "abroad" : "";
 }
@@ -61,9 +62,10 @@ export function refineJobs(items) {
     item.profiles = found.map((e) => e.profile.id);
     item.profileLabels = found.map((e) => e.profile.label);
     item.place = placeOf(item) || undefined;
-    item.placeLabel = item.place === "remote-limited" && item.where ? `À distance · ${String(item.where).slice(0, 28)}` : item.place === "abroad" && item.where ? `Sur place · ${String(item.where).slice(0, 24)}` : PLACE_LABELS[item.place];
+    const openToBenin = item.remote && item.place === "remote" && BENIN.test(String(item.where || ""));
+    item.placeLabel = openToBenin ? "À distance · ouvert au Bénin" : item.place === "remote-limited" && item.where ? `À distance · ${String(item.where).slice(0, 28)}` : item.place === "abroad" && item.where ? `Sur place · ${String(item.where).slice(0, 24)}` : PLACE_LABELS[item.place];
     const best = found[0];
-    item.score = (best ? best.profile.weight + Math.min(3, best.inTitle) : 0) + (PLACE_BONUS[item.place] ?? 0);
+    item.score = (best ? best.profile.weight + Math.min(3, best.inTitle) : 0) + (PLACE_BONUS[item.place] ?? 0) + (openToBenin ? 2 : 0);
     if (best && TOPIC_OF[best.profile.id]) { item.topic = TOPIC_OF[best.profile.id]; item.topicLabel = TOPIC_LABELS[item.topic]; }
     kept.push(item);
   }
