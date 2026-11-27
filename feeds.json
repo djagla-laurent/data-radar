@@ -7,7 +7,9 @@
     "topic": "it",
     "language": "fr",
     "maxAgeDays": 45,
-    "value": "Annonce de recrutement relayée par la presse béninoise. Vérifiez l’offre sur le site de l’employeur."
+    "value": "Annonce de recrutement relayée par la presse béninoise. Vérifiez l’offre sur le site de l’employeur.",
+    "place": "benin",
+    "where": "Bénin"
   },
   {
     "name": "Presse Bénin · formations",
@@ -61,5 +63,70 @@
     "maxAgeDays": 60,
     "max": 8,
     "value": "Analyse statistique fondée sur des données ouvertes, avec graphiques et sources citées."
+  },
+  {
+    "name": "Presse Bénin · statistique",
+    "url": "https://news.google.com/rss/search?q=recrutement+(statisticien+OR+statistique+OR+INStaD+OR+%22enqu%C3%AAte%22)+B%C3%A9nin&hl=fr&gl=BJ&ceid=BJ:fr",
+    "topic": "statistics",
+    "type": "job",
+    "typeLabel": "Emploi",
+    "language": "fr",
+    "maxAgeDays": 45,
+    "max": 12,
+    "place": "benin",
+    "where": "Bénin",
+    "value": "Annonce de recrutement liée à la statistique, relayée par la presse béninoise. Vérifiez l’offre, la date limite et les conditions sur le site de l’employeur."
+  },
+  {
+    "name": "Presse Bénin · suivi-évaluation",
+    "url": "https://news.google.com/rss/search?q=recrutement+(%22suivi-%C3%A9valuation%22+OR+%22suivi+et+%C3%A9valuation%22)+B%C3%A9nin&hl=fr&gl=BJ&ceid=BJ:fr",
+    "topic": "statistics",
+    "type": "job",
+    "typeLabel": "Emploi",
+    "language": "fr",
+    "maxAgeDays": 45,
+    "max": 12,
+    "place": "benin",
+    "where": "Bénin",
+    "value": "Offre de suivi-évaluation ou d’études (ONG, projets, institutions) relayée par la presse. Vérifiez la date limite sur l’annonce d’origine."
+  },
+  {
+    "name": "Presse Bénin · ONG et institutions",
+    "url": "https://news.google.com/rss/search?q=recrutement+(PNUD+OR+UNICEF+OR+FAO+OR+%22Banque+mondiale%22+OR+ONG)+B%C3%A9nin+(donn%C3%A9es+OR+statistique+OR+suivi)&hl=fr&gl=BJ&ceid=BJ:fr",
+    "topic": "statistics",
+    "type": "job",
+    "typeLabel": "Emploi",
+    "language": "fr",
+    "maxAgeDays": 45,
+    "max": 12,
+    "place": "benin",
+    "where": "Bénin",
+    "value": "Offre d’une organisation internationale ou d’une ONG au Bénin, relayée par la presse. Vérifiez les conditions de candidature sur l’annonce d’origine."
+  },
+  {
+    "name": "Presse Bénin · data",
+    "url": "https://news.google.com/rss/search?q=recrutement+(%22data+analyst%22+OR+%22data+scientist%22+OR+%22analyste+de+donn%C3%A9es%22+OR+%22data+engineer%22)+B%C3%A9nin&hl=fr&gl=BJ&ceid=BJ:fr",
+    "topic": "data-science",
+    "type": "job",
+    "typeLabel": "Emploi",
+    "language": "fr",
+    "maxAgeDays": 45,
+    "max": 12,
+    "place": "benin",
+    "where": "Bénin",
+    "value": "Offre en data relayée par la presse béninoise. Vérifiez l’offre sur le site de l’employeur."
+  },
+  {
+    "name": "Presse Bénin · consultants",
+    "url": "https://news.google.com/rss/search?q=%22appel+%C3%A0+candidatures%22+consultant+(statistique+OR+donn%C3%A9es+OR+enqu%C3%AAte)+B%C3%A9nin&hl=fr&gl=BJ&ceid=BJ:fr",
+    "topic": "statistics",
+    "type": "job",
+    "typeLabel": "Emploi",
+    "language": "fr",
+    "maxAgeDays": 45,
+    "max": 12,
+    "place": "benin",
+    "where": "Bénin",
+    "value": "Appel à candidatures ou à consultants relayé par la presse. Consultez l’annonce originale pour le dossier et la date limite."
   }
 ]
