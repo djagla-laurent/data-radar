@@ -44,7 +44,8 @@ export async function collectFeeds(feeds, { make, clean, fetchText }) {
           date: date.toISOString(), source: `${feed.name}${entry.source ? ` · ${entry.source}` : ""}`, url: entry.link,
           title: clean(entry.title.endsWith(suffix) && suffix ? entry.title.slice(0, -suffix.length) : entry.title, 200),
           summary: clean(entry.summary, 220) || feed.name,
-          value: feed.value || "Source locale suivie automatiquement. Ouvrez la page originale pour les détails."
+          value: feed.value || "Source locale suivie automatiquement. Ouvrez la page originale pour les détails.",
+          ...(feed.place ? { place: feed.place, where: feed.where } : {})
         }));
       }
     } catch (error) {
@@ -109,6 +110,8 @@ export function buildDigest(items, intro = "") {
       ? pool.filter((item) => item.date >= today).sort((a, b) => a.date.localeCompare(b.date))
       : type === "challenge"
       ? pool.filter((item) => item.status === "open" || item.status === "upcoming").sort((a, b) => (a.deadline || "9").localeCompare(b.deadline || "9"))
+      : type === "job"
+      ? pool.filter((item) => item.date <= today).sort((a, b) => (b.score || 0) - (a.score || 0) || b.date.localeCompare(a.date))
       : pool.filter((item) => item.date <= today).sort((a, b) => b.date.localeCompare(a.date));
     return { type, label, items: picked.slice(0, 3).map((item) => ({ title: item.titleFr || item.title, url: item.url, source: item.source, date: item.date })) };
   }).filter((section) => section.items.length);
