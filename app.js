@@ -39,6 +39,7 @@ const filters = {
   topic: document.querySelector("#topic-filter"),
   language: document.querySelector("#language-filter"),
   status: document.querySelector("#status-filter"),
+  sector: document.querySelector("#sector-filter"),
   sort: document.querySelector("#sort-filter")
 };
 const state = {
@@ -101,11 +102,12 @@ function getVisibleItems() {
   return pool.filter((item) => {
     const matchesProfile = (state.profileTopic === "all" || item.topic === state.profileTopic)
       && (state.profileLanguage === "all" || item.language === state.profileLanguage);
-    const searchable = `${item.title} ${item.titleFr || ""} ${item.summary} ${item.summaryFr || ""} ${item.source} ${item.topicLabel}`.toLocaleLowerCase("fr");
+    const searchable = `${item.title} ${item.titleFr || ""} ${item.summary} ${item.summaryFr || ""} ${item.source} ${item.topicLabel} ${(item.sectorLabels || []).join(" ")}`.toLocaleLowerCase("fr");
     /* les plateformes permanentes n’encombrent pas le fil : visibles via le format « Challenges », une recherche ou le statut « Plateforme » */
     const showPlatform = item.status !== "platform" || filters.type.value === "challenge" || search || filters.status.value === "platform";
     return matchesProfile && showPlatform
       && (filters.status.value === "all" || item.status === filters.status.value)
+      && (filters.sector.value === "all" || (item.sectors || []).includes(filters.sector.value))
       && (!search || searchable.includes(search))
       && (filters.type.value === "all" || item.type === filters.type.value)
       && (filters.topic.value === "all" || item.topic === filters.topic.value)
@@ -133,6 +135,7 @@ function renderCard(item) {
         <div class="card-type-wrap">
           <span class="type-badge type-${escapeHtml(item.type)}">${escapeHtml(item.typeLabel)}</span>
           <span class="topic-tag">${escapeHtml(item.topicLabel)}</span>
+          ${(item.sectorLabels || []).map((label) => `<span class="sector-pill">${escapeHtml(label)}</span>`).join("")}
           ${item.pays ? `<span class="country-pill" title="Éligibilité vérifiée par l’équipe du projet">Pays vérifiés : ${escapeHtml(item.pays)}</span>` : ""}
           ${item.status ? `<span class="status-pill status-${escapeHtml(item.status)}">${escapeHtml(statusText(item))}</span>` : ""}
         </div>
@@ -214,7 +217,7 @@ function openDetails(id) {
   state.activeDialogItem = id;
   document.querySelector("#detail-type").className = `type-badge type-${item.type}`;
   document.querySelector("#detail-type").textContent = item.typeLabel;
-  document.querySelector("#detail-language").textContent = `${item.topicLabel} · ${languageNames[item.language]} · ${formatDate(item.date)}${item.status ? ` · ${statusText(item)}` : ""}`;
+  document.querySelector("#detail-language").textContent = `${item.topicLabel}${item.sectorLabels?.length ? ` · ${item.sectorLabels.join(", ")}` : ""} · ${languageNames[item.language]} · ${formatDate(item.date)}${item.status ? ` · ${statusText(item)}` : ""}`;
   document.querySelector("#detail-title").textContent = titleOf(item);
   document.querySelector("#detail-summary").textContent = summaryOf(item);
   /* le montant de la dotation est affiché à part, comme « déclaré » : on le retire du texte d’origine */
@@ -293,6 +296,7 @@ document.querySelector("#clear-filters").addEventListener("click", () => {
   filters.topic.value = "all";
   filters.language.value = "all";
   filters.status.value = "all";
+  filters.sector.value = "all";
   filters.sort.value = "newest";
   state.profileTopic = "all";
   state.profileLanguage = "all";
