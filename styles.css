@@ -262,6 +262,13 @@ a { color: inherit; }
 .type-challenge { background: #e8ebff; color: #5560a8; }
 .country-pill { padding: 3px 7px; border-radius: 99px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #def3e3; color: #2f7a45; }
 .sector-pill { padding: 3px 7px; border-radius: 99px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #efe8f6; color: #6a4f8f; }
+.job-pill { padding: 3px 7px; border-radius: 99px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #e6eefb; color: #3b5f99; }
+.place-pill { padding: 3px 7px; border-radius: 99px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #eef0ee; color: #5f6b63; }
+.place-benin { background: #def3e3; color: #2f7a45; }
+.place-africa { background: #e4f4f1; color: #3f857a; }
+.place-remote { background: #e1ecfb; color: #3b6aa6; }
+.place-remote-limited { background: #fde9d6; color: #a1531a; }
+.filter-select[hidden] { display: none; }
 .status-pill { padding: 3px 7px; border-radius: 99px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #eef0ee; color: #6a756d; }
 .status-open { background: #def3e3; color: #2f7a45; }
 .status-upcoming { background: #e1ecfb; color: #3b6aa6; }
@@ -467,6 +474,12 @@ a.card-open { text-decoration: none; }
 [data-theme="dark"] .type-challenge { background: #252a47; color: #aab4f0; }
 [data-theme="dark"] .country-pill { background: #1e3626; color: #8fd4a2; }
 [data-theme="dark"] .sector-pill { background: #2e2540; color: #c5aee6; }
+[data-theme="dark"] .job-pill { background: #1f2d44; color: #9fc0ee; }
+[data-theme="dark"] .place-pill { background: #202c25; color: #aab6ae; }
+[data-theme="dark"] .place-benin { background: #1e3626; color: #8fd4a2; }
+[data-theme="dark"] .place-africa { background: #1d3532; color: #8fd3c7; }
+[data-theme="dark"] .place-remote { background: #1f2d44; color: #9fc0ee; }
+[data-theme="dark"] .place-remote-limited { background: #43301a; color: #f0c08e; }
 [data-theme="dark"] .status-pill { background: #202c25; color: #aab6ae; }
 [data-theme="dark"] .status-open { background: #1e3626; color: #8fd4a2; }
 [data-theme="dark"] .status-upcoming { background: #1f2d44; color: #9fc0ee; }
