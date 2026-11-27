@@ -40,6 +40,8 @@ const filters = {
   language: document.querySelector("#language-filter"),
   status: document.querySelector("#status-filter"),
   sector: document.querySelector("#sector-filter"),
+  profile: document.querySelector("#profile-filter"),
+  place: document.querySelector("#place-filter"),
   sort: document.querySelector("#sort-filter")
 };
 const state = {
@@ -102,18 +104,23 @@ function getVisibleItems() {
   return pool.filter((item) => {
     const matchesProfile = (state.profileTopic === "all" || item.topic === state.profileTopic)
       && (state.profileLanguage === "all" || item.language === state.profileLanguage);
-    const searchable = `${item.title} ${item.titleFr || ""} ${item.summary} ${item.summaryFr || ""} ${item.source} ${item.topicLabel} ${(item.sectorLabels || []).join(" ")}`.toLocaleLowerCase("fr");
+    const searchable = `${item.title} ${item.titleFr || ""} ${item.summary} ${item.summaryFr || ""} ${item.source} ${item.topicLabel} ${(item.sectorLabels || []).join(" ")} ${(item.profileLabels || []).join(" ")} ${item.placeLabel || ""}`.toLocaleLowerCase("fr");
     /* les plateformes permanentes n’encombrent pas le fil : visibles via le format « Challenges », une recherche ou le statut « Plateforme » */
     const showPlatform = item.status !== "platform" || filters.type.value === "challenge" || search || filters.status.value === "platform";
     return matchesProfile && showPlatform
       && (filters.status.value === "all" || item.status === filters.status.value)
       && (filters.sector.value === "all" || (item.sectors || []).includes(filters.sector.value))
+      && (filters.profile.value === "all" || (item.profiles || []).includes(filters.profile.value))
+      && (filters.place.value === "all" || item.place === filters.place.value)
       && (!search || searchable.includes(search))
       && (filters.type.value === "all" || item.type === filters.type.value)
       && (filters.topic.value === "all" || item.topic === filters.topic.value)
       && (filters.language.value === "all" || item.language === filters.language.value)
       && (!state.favoritesOnly || state.favorites.has(item.id));
   }).sort((a, b) => {
+    if (filters.sort.value === "relevance") {
+      return ((b.score || 0) - (a.score || 0)) || b.date.localeCompare(a.date) || mixOrder(a.id) - mixOrder(b.id);
+    }
     if (filters.sort.value === "active") {
       /* en cours d’abord (échéance la plus proche en tête), puis à venir, puis le reste du plus récent au plus ancien */
       const rank = (STATUS_RANK[a.status] ?? 4) - (STATUS_RANK[b.status] ?? 4);
@@ -136,6 +143,8 @@ function renderCard(item) {
           <span class="type-badge type-${escapeHtml(item.type)}">${escapeHtml(item.typeLabel)}</span>
           <span class="topic-tag">${escapeHtml(item.topicLabel)}</span>
           ${(item.sectorLabels || []).map((label) => `<span class="sector-pill">${escapeHtml(label)}</span>`).join("")}
+          ${item.profileLabels?.[0] ? `<span class="job-pill">${escapeHtml(item.profileLabels[0])}</span>` : ""}
+          ${item.placeLabel ? `<span class="place-pill place-${escapeHtml(item.place)}" title="Lieu de travail déclaré par la source">${escapeHtml(item.placeLabel)}</span>` : ""}
           ${item.pays ? `<span class="country-pill" title="Éligibilité vérifiée par l’équipe du projet">Pays vérifiés : ${escapeHtml(item.pays)}</span>` : ""}
           ${item.status ? `<span class="status-pill status-${escapeHtml(item.status)}">${escapeHtml(statusText(item))}</span>` : ""}
         </div>
@@ -223,8 +232,11 @@ function openDetails(id) {
   /* le montant de la dotation est affiché à part, comme « déclaré » : on le retire du texte d’origine */
   document.querySelector("#detail-value").textContent = item.type === "challenge" ? String(item.value).replace(/, dotation : [^.]*\./, ".") : item.value;
   const isChallenge = item.type === "challenge";
-  document.querySelector("#detail-check").hidden = !isChallenge;
-  document.querySelector("#detail-pays").textContent = item.pays ? `Éligibilité vérifiée par l’équipe du projet : ${item.pays}.` : "Pays admis : non vérifié. Consultez le règlement avant de participer.";
+  const isJob = item.type === "job";
+  document.querySelector("#detail-check").hidden = !(isChallenge || isJob);
+  document.querySelector("#detail-check-kicker").textContent = isJob ? "AVANT DE POSTULER" : "AVANT DE VOUS INSCRIRE";
+  document.querySelector("#detail-check-text").textContent = isJob ? "Vérifiez la date limite, le lieu de travail et les conditions (pays admis, fuseau horaire, permis) sur l’offre d’origine." : "Vérifiez les pays admis, les prix et les droits sur votre travail.";
+  document.querySelector("#detail-pays").textContent = isJob ? (item.placeLabel ? `Lieu : ${item.placeLabel}${item.place === "remote-limited" ? ". Cette offre peut exclure le Bénin : vérifiez-le sur l’annonce" : ""}.${item.deadline ? ` Date limite : ${formatDate(item.deadline)}.` : ""}` : "Lieu non précisé par la source.") : item.pays ? `Éligibilité vérifiée par l’équipe du projet : ${item.pays}.` : "Pays admis : non vérifié. Consultez le règlement avant de participer.";
   const prizeLine = document.querySelector("#detail-prize");
   prizeLine.hidden = !(isChallenge && item.prize);
   prizeLine.textContent = item.prize ? `Dotation déclarée par l’organisateur (non vérifiée) : ${item.prize}. Elle peut additionner plusieurs lots ou compter des crédits.` : "";
@@ -260,8 +272,17 @@ Object.values(filters).forEach((control) => {
   control.addEventListener(control === filters.search ? "input" : "change", refresh);
 });
 
+function syncJobFilters() {
+  const on = filters.type.value === "job";
+  document.querySelectorAll(".job-filter").forEach((label) => { label.hidden = !on; });
+  if (!on) { filters.profile.value = "all"; filters.place.value = "all"; }
+}
+syncJobFilters();
 filters.type.addEventListener("change", () => {
-  if (filters.type.value === "challenge" && filters.sort.value === "newest") { filters.sort.value = "active"; refresh(); }
+  syncJobFilters();
+  if (filters.type.value === "challenge" && filters.sort.value === "newest") filters.sort.value = "active";
+  if (filters.type.value === "job" && filters.sort.value === "newest") filters.sort.value = "relevance";
+  refresh();
 });
 
 document.querySelector("#favorites-toggle").addEventListener("click", (event) => {
@@ -297,6 +318,9 @@ document.querySelector("#clear-filters").addEventListener("click", () => {
   filters.language.value = "all";
   filters.status.value = "all";
   filters.sector.value = "all";
+  filters.profile.value = "all";
+  filters.place.value = "all";
+  syncJobFilters();
   filters.sort.value = "newest";
   state.profileTopic = "all";
   state.profileLanguage = "all";
@@ -348,7 +372,7 @@ document.querySelector("#theme-button").addEventListener("click", () => {
 
 /* ---------- Sources réelles ---------- */
 const sourceStatus = {};
-const SOURCE_NAMES = Object.fromEntries([...LIVE_SOURCES.map((source) => [source.id, source.name]), ["events", "Conférences"], ["challenges", "Challenges"], ["feeds", "Sources locales"]]);
+const SOURCE_NAMES = Object.fromEntries([...LIVE_SOURCES.map((source) => [source.id, source.name]), ["events", "Conférences"], ["challenges", "Challenges"], ["jobs", "Emplois à distance"], ["feeds", "Sources locales"]]);
 function renderSourceStatus() {
   const entries = Object.entries(sourceStatus).map(([id, info]) => ({ source: { name: SOURCE_NAMES[id] || id }, ...info }));
   document.querySelector("#source-chips").innerHTML = entries.map(({ source, status, count, error }) => {
@@ -489,11 +513,12 @@ function agendaEntries() {
   const today = new Date().toISOString().slice(0, 10);
   const out = [];
   for (const item of items) {
-    if (item.type !== "event" && item.type !== "challenge") continue;
+    const isJob = item.type === "job";
+    if (item.type !== "event" && item.type !== "challenge" && !(isJob && item.deadline)) continue;
     if (item.status === "platform" || item.status === "ended") continue;
     const deadline = item.deadline || /date limite[^0-9]*(\d{4}-\d{2}-\d{2})/i.exec(item.value || "")?.[1];
-    if (deadline && deadline >= today) out.push({ kind: "Date limite de soumission", date: deadline, item });
-    if (item.date >= today) out.push({ kind: item.type === "challenge" ? "Début du challenge" : "Début de l’événement", date: item.date, item });
+    if (deadline && deadline >= today) out.push({ kind: isJob ? "Date limite de candidature" : "Date limite de soumission", date: deadline, item });
+    if (!isJob && item.date >= today) out.push({ kind: item.type === "challenge" ? "Début du challenge" : "Début de l’événement", date: item.date, item });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date)).slice(0, 40);
 }
