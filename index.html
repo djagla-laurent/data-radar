@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f7f4">
   <title>Data Radar | Veille statistiques, data et informatique</title>
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=13">
   <style>
     /* Mise en page : la barre latérale défile avec la page (plus de panneau fixe qui coupe le contenu) */
     .app-shell { display: grid; grid-template-columns: 256px minmax(0, 1fr); align-items: stretch; }
@@ -25,8 +25,8 @@
     [data-theme="dark"] .brand, [data-theme="dark"] .side-nav { background: var(--paper); }
   </style>
   <script src="data/items.js" defer></script>
-  <script src="sources.js?v=12" defer></script>
-  <script src="app.js?v=12" defer></script>
+  <script src="sources.js?v=13" defer></script>
+  <script src="app.js?v=13" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -194,6 +194,29 @@
               <option value="data-science">Science des données</option>
               <option value="data-engineering">Ingénierie des données</option>
               <option value="it">Informatique</option>
+            </select>
+          </label>
+          <label class="filter-select">
+            <span class="sr-only">Secteur</span>
+            <select id="sector-filter">
+              <option value="all">Tous les secteurs</option>
+              <option value="agriculture">Agriculture</option>
+              <option value="sante">Santé</option>
+              <option value="finance">Finance</option>
+              <option value="economie">Économie</option>
+              <option value="environnement">Environnement et climat</option>
+              <option value="energie">Énergie</option>
+              <option value="education">Éducation</option>
+              <option value="transport">Transport et logistique</option>
+              <option value="developpement">Développement et impact social</option>
+              <option value="gouvernance">Administration publique</option>
+              <option value="commerce">Commerce et marketing</option>
+              <option value="immobilier">Immobilier et logement</option>
+              <option value="tourisme">Tourisme</option>
+              <option value="securite">Cybersécurité</option>
+              <option value="medias">Médias et culture</option>
+              <option value="sport">Sport</option>
+              <option value="sciences">Sciences</option>
             </select>
           </label>
           <label class="filter-select">
